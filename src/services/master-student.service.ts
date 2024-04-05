@@ -44,11 +44,17 @@ class MasterStudentService {
   }
 
   async findOne(id: number) {
-    return await prisma.masterStudent.findUnique({
+    const result = await prisma.masterStudent.findUnique({
       where: {
         id,
       },
     });
+
+    if (!result) {
+      throw new NotFoundError('Student not found');
+    }
+
+    return result;
   }
 
   async create(data: MasterStudentCreateDTO) {

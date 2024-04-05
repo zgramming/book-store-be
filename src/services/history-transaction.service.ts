@@ -60,6 +60,11 @@ class HistoryTransactionService {
       },
       take: limit,
       skip: (page - 1) * limit,
+      include: {
+        student: true,
+        book: true,
+        transaction: true,
+      },
     });
 
     const total = await prisma.historyTransaction.count({

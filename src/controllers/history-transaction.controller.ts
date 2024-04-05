@@ -8,19 +8,24 @@ class HistoryTransactionController {
     const { limit, page, nim, name_student, book_id, book_title, date_loan, date_return, long_loan_in_days } =
       req.query;
 
-    const result = await this.historyTransactionService.findAll({
-      limit: Number(limit),
-      page: Number(page),
+    const { data: result, total } = await this.historyTransactionService.findAll({
+      limit: Number(limit || 10),
+      page: Number(page || 1),
       nim: nim as string | undefined,
       name_student: name_student as string | undefined,
-      book_id: book_id as number | undefined,
+      book_id: book_id ? Number(book_id) : undefined,
       book_title: book_title as string | undefined,
-      date_loan: date_loan as Date | undefined,
-      date_return: date_return as Date | undefined,
-      long_loan_in_days: long_loan_in_days as number | undefined,
+      date_loan: date_loan ? new Date(date_loan as string) : undefined,
+      date_return: date_return ? new Date(date_return as string) : undefined,
+      long_loan_in_days: long_loan_in_days ? Number(long_loan_in_days) : undefined,
     });
 
-    res.json(result);
+    res.json({
+      message: 'Data has been retrieved',
+      error: false,
+      total,
+      data: result,
+    });
   };
 }
 

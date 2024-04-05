@@ -7,13 +7,18 @@ class MasterBookController {
   findAll = async (req: Request, res: Response) => {
     const { limit, page, title } = req.query;
 
-    const result = await this.masterBookService.findAll({
-      limit: Number(limit),
-      page: Number(page),
-      title: title as string,
+    const { data: result, total } = await this.masterBookService.findAll({
+      limit: Number(limit || 10),
+      page: Number(page || 1),
+      title: title as string | undefined,
     });
 
-    res.json(result);
+    res.json({
+      message: 'Success',
+      error: false,
+      total,
+      data: result,
+    });
   };
 
   findOne = async (req: Request, res: Response) => {
@@ -21,7 +26,11 @@ class MasterBookController {
 
     const result = await this.masterBookService.findOne(Number(id));
 
-    res.json(result);
+    res.json({
+      message: 'Success',
+      error: false,
+      data: result,
+    });
   };
 
   create = async (req: Request, res: Response) => {
@@ -31,10 +40,14 @@ class MasterBookController {
       title,
       author,
       publisher,
-      year,
+      year: Number(year),
     });
 
-    res.json(result);
+    res.json({
+      message: 'Success',
+      error: false,
+      data: result,
+    });
   };
 
   update = async (req: Request, res: Response) => {
@@ -45,10 +58,14 @@ class MasterBookController {
       title,
       author,
       publisher,
-      year,
+      year : Number(year),
     });
 
-    res.json(result);
+    res.json({
+      message: 'Success',
+      error: false,
+      data: result,
+    });
   };
 
   delete = async (req: Request, res: Response) => {
@@ -56,7 +73,11 @@ class MasterBookController {
 
     const result = await this.masterBookService.delete(Number(id));
 
-    res.json(result);
+    res.json({
+      message: 'Success',
+      error: false,
+      data: result,
+    });
   };
 }
 

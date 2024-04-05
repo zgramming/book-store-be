@@ -7,13 +7,17 @@ class MasterStudentController {
   findAll = async (req: Request, res: Response) => {
     const { limit, page, name } = req.query;
 
-    const result = await this.masterStudentService.findAll({
-      limit: Number(limit),
-      page: Number(page),
+    const { data: result, total } = await this.masterStudentService.findAll({
+      limit: Number(limit || 10),
+      page: Number(page || 1),
       name: name as string,
     });
 
-    res.json(result);
+    res.json({
+      message: 'success',
+      error: false,
+      data: result,
+    });
   };
 
   findOne = async (req: Request, res: Response) => {
@@ -21,7 +25,11 @@ class MasterStudentController {
 
     const result = await this.masterStudentService.findOne(Number(id));
 
-    res.json(result);
+    res.json({
+      message: 'success',
+      error: false,
+      data: result,
+    });
   };
 
   create = async (req: Request, res: Response) => {
@@ -33,7 +41,11 @@ class MasterStudentController {
       status,
     });
 
-    res.json(result);
+    res.json({
+      message: 'success',
+      error: false,
+      data: result,
+    });
   };
 
   update = async (req: Request, res: Response) => {
@@ -46,7 +58,11 @@ class MasterStudentController {
       status,
     });
 
-    res.json(result);
+    res.json({
+      message: 'success',
+      error: false,
+      data: result,
+    });
   };
 
   delete = async (req: Request, res: Response) => {
@@ -54,7 +70,11 @@ class MasterStudentController {
 
     const result = await this.masterStudentService.delete(Number(id));
 
-    res.json(result);
+    res.json({
+      message: 'success',
+      error: false,
+      data: result,
+    });
   };
 }
 

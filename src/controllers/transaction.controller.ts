@@ -8,9 +8,9 @@ class TransactionController {
     const { student_id, date_loan, date_return, status, book } = req.body;
 
     const result = await this.transactionService.create({
-      student_id,
-      date_loan,
-      date_return,
+      student_id: Number(student_id),
+      date_loan: new Date(date_loan),
+      date_return: new Date(date_return),
       status,
       book,
     });

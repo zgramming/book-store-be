@@ -44,11 +44,17 @@ class MasterBookService {
   }
 
   async findOne(id: number) {
-    return await prisma.masterBook.findUnique({
+    const book = await prisma.masterBook.findUnique({
       where: {
         id,
       },
     });
+
+    if (!book) {
+      throw new NotFoundError('Book not found');
+    }
+
+    return book;
   }
 
   async create(data: MasterBookCreateDTO) {

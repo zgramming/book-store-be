@@ -58,16 +58,16 @@ class TransactionService {
       });
 
       for (const book of data.book) {
-        const loanedBook = await trx.transaction.count({
+        const loanedBookAgg = await trx.transactionDetail.aggregate({
+          _sum: {
+            qty: true,
+          },
           where: {
-            TransactionDetail: {
-              some: {
-                book_id: book.book_id,
-              },
-            },
+            book_id: book.book_id,
             status: 'loaned',
           },
         });
+        const loanedBook = loanedBookAgg._sum?.qty || 0;
 
         const bookInventory = booksInventory.find((inventory) => inventory.book_id === book.book_id);
 
@@ -76,7 +76,13 @@ class TransactionService {
         }
 
         const currentStock = bookInventory.stock - loanedBook;
-        const isStockNotEnough = currentStock < book.quantity;
+        const isStockNotEnough = currentStock < +book.quantity;
+
+        console.log({
+          loanedBook,
+          currentStock,
+          isStockNotEnough,
+        });
 
         if (isStockNotEnough) {
           throw new InvariantError(
@@ -95,7 +101,7 @@ class TransactionService {
             createMany: {
               data: data.book.map((book) => ({
                 book_id: book.book_id,
-                qty: book.quantity,
+                qty: +book.quantity,
               })),
             },
           },
@@ -157,7 +163,9 @@ class TransactionService {
 
       // After update transaction status, create history transaction
       for (const bookId of bookIds) {
-        const totalBook = detailTransaction.filter((detail) => detail.book_id === bookId).length;
+        const totalBook = detailTransaction
+          .filter((detail) => detail.book_id === bookId)
+          .reduce((acc, curr) => acc + curr.qty, 0);
         const durationInDays = dayjs(updateTrx.date_return).diff(dayjs(updateTrx.date_loan), 'day');
         await trx.historyTransaction.create({
           data: {

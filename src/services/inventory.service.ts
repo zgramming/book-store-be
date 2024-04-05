@@ -70,6 +70,18 @@ class InventoryService {
   }
 
   async create(data: InventoryCreateDTO) {
+    const book = await prisma.inventory.findFirst({
+      where: {
+        book_id: data.book_id,
+      },
+    });
+
+    if (book) {
+      throw new InvariantError(
+        'Book already exists in inventory, please update the stock instead of creating new inventory',
+      );
+    }
+
     return await prisma.inventory.create({
       data,
     });
@@ -84,6 +96,16 @@ class InventoryService {
 
     if (!inventory) {
       throw new NotFoundError('Inventory not found');
+    }
+
+    const book = await prisma.masterBook.findFirst({
+      where: {
+        id: data.book_id,
+      },
+    });
+
+    if (!book) {
+      throw new NotFoundError('Book not found in master book');
     }
 
     return await prisma.inventory.update({
