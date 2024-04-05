@@ -13,270 +13,103 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum UserStatus {
-  active
-  inactive
-  blocked
-  process_verification
-}
-
 enum CommonStatus {
   active
   inactive
 }
 
-// System Modul Schema, dont touch this
-
-model AppMasterIcon {
-  id       Int          @id @default(autoincrement())
-  name     String       @db.VarChar(100)
-  code     String       @unique @db.VarChar(50)
-  status   CommonStatus @default(active)
-  icon_url String       @db.Text
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-  created_by Int?
-  updated_by Int?
-
-  AppCategoryModul AppCategoryModul[]
-  AppModul         AppModul[]
-  AppMenu          AppMenu[]
-
-  @@map("app_master_icon")
+enum TransactionStatus {
+  loaned
+  returned
 }
 
-model AppAccessModul {
-  id                    String @id @default(uuid())
-  role_id               Int
-  app_category_modul_id Int
-  app_modul_id          Int
+// Main Modul Schema
 
+model Inventory {
+  id         Int      @id @default(autoincrement())
+  book_id    Int      @db.Integer
+  location   String   @db.VarChar(100)
+  stock      Int      @db.Integer
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
-  created_by Int?
-  updated_by Int?
 
-  role               Role             @relation(fields: [role_id], references: [id], onDelete: Cascade)
-  app_category_modul AppCategoryModul @relation(fields: [app_category_modul_id], references: [id], onDelete: Cascade)
-  app_modul          AppModul         @relation(fields: [app_modul_id], references: [id], onDelete: Cascade)
+  book MasterBook @relation(fields: [book_id], references: [id])
 
-  @@map("app_access_modul")
+  @@map("inventory")
 }
 
-model AppAccessMenu {
-  id                    String @id @default(uuid())
-  role_id               Int
-  app_category_modul_id Int
-  app_modul_id          Int
-  app_menu_id           Int
-  permissions           Json?
+model HistoryTransaction {
+  id                 Int               @id @default(autoincrement())
+  transaction_id     Int               @db.Integer
+  book_id            Int               @db.Integer
+  student_id         Int               @db.Integer
+  qty                Int               @db.Integer
+  status             TransactionStatus @default(returned)
+  duration_loan_days Int               @db.Integer
+  created_at         DateTime          @default(now())
+  updated_at         DateTime          @updatedAt
 
+  student     MasterStudent @relation(fields: [student_id], references: [id])
+  transaction Transaction   @relation(fields: [transaction_id], references: [id])
+  book        MasterBook    @relation(fields: [book_id], references: [id])
+
+  @@map("history_transaction")
+}
+
+model MasterBook {
+  id         Int      @id @default(autoincrement())
+  title      String   @db.VarChar(100)
+  author     String   @db.VarChar(100)
+  publisher  String   @db.VarChar(100)
+  year       Int      @db.Integer
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
-  created_by Int?
-  updated_by Int?
 
-  role               Role             @relation(fields: [role_id], references: [id], onDelete: Cascade)
-  app_category_modul AppCategoryModul @relation(fields: [app_category_modul_id], references: [id], onDelete: Cascade)
-  app_modul          AppModul         @relation(fields: [app_modul_id], references: [id], onDelete: Cascade)
-  app_menu           AppMenu          @relation(fields: [app_menu_id], references: [id], onDelete: Cascade)
+  TransactionDetail  TransactionDetail[]
+  HistoryTransaction HistoryTransaction[]
+  Inventory          Inventory[]
 
-  @@map("app_access_menu")
+  @@map("master_book")
 }
 
-model AppCategoryModul {
-  id      Int          @id @default(autoincrement())
-  icon_id Int?         @db.Integer
-  code    String       @unique @db.VarChar(50)
-  name    String       @db.VarChar(100)
-  order   Int          @default(0)
-  status  CommonStatus @default(active)
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-  created_by Int?
-  updated_by Int?
-
-  icon AppMasterIcon? @relation(fields: [icon_id], references: [id])
-
-  AppModul       AppModul[]
-  AppMenu        AppMenu[]
-  AppAccessModul AppAccessModul[]
-  AppAccessMenu  AppAccessMenu[]
-
-  @@map("app_category_modul")
-}
-
-model AppModul {
-  id                    Int          @id @default(autoincrement())
-  app_category_modul_id Int
-  icon_id               Int?
-  code                  String       @unique @db.VarChar(50)
-  name                  String       @db.VarChar(100)
-  order                 Int          @default(0) @db.Integer
-  status                CommonStatus @default(active)
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-  created_by Int?
-  updated_by Int?
-
-  app_category_modul AppCategoryModul @relation(fields: [app_category_modul_id], references: [id], onDelete: Cascade)
-  icon               AppMasterIcon?   @relation(fields: [icon_id], references: [id])
-
-  menus        AppMenu[]
-  access_modul AppAccessModul[]
-  access_menu  AppAccessMenu[]
-
-  @@map("app_modul")
-}
-
-model AppMenu {
-  id                    Int          @id @default(autoincrement())
-  app_menu_id_parent    Int?
-  app_category_modul_id Int
-  app_modul_id          Int
-  icon_id               Int?
-  code                  String       @db.VarChar(50)
-  name                  String       @db.VarChar(100)
-  route                 String       @db.VarChar(100)
-  order                 Int          @default(0)
-  status                CommonStatus @default(active)
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-  created_by Int?
-  updated_by Int?
-
-  app_category_modul AppCategoryModul @relation(fields: [app_category_modul_id], references: [id], onDelete: Cascade)
-  app_modul          AppModul         @relation(fields: [app_modul_id], references: [id], onDelete: Cascade)
-  menu_parent        AppMenu?         @relation(name: "parent_children", fields: [app_menu_id_parent], references: [id], onDelete: Cascade)
-  menu_childrens     AppMenu[]        @relation(name: "parent_children")
-  icon               AppMasterIcon?   @relation(fields: [icon_id], references: [id])
-
-  access_menu AppAccessMenu[]
-
-  @@map("app_menu")
-}
-
-model MasterCategory {
-  id                        Int          @id @default(autoincrement())
-  master_category_parent_id Int?
-  code                      String       @unique @db.VarChar(50)
-  name                      String       @db.VarChar(100)
-  description               String?      @db.Text
-  status                    CommonStatus @default(active)
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-  created_by Int?
-  updated_by Int?
-
-  master_category_parent   MasterCategory?  @relation(name: "category", fields: [master_category_parent_id], references: [id], onDelete: Cascade)
-  master_category_children MasterCategory[] @relation(name: "category")
-
-  master_datas MasterData[]
-
-  @@map("master_category")
-}
-
-model MasterData {
-  id                    Int          @id @default(autoincrement())
-  master_data_parent_id Int?
-  master_category_id    Int
-  master_category_code  String       @db.VarChar(50)
-  code                  String       @unique @db.VarChar(50)
-  name                  String       @db.VarChar(100)
-  description           String?      @db.Text
-  status                CommonStatus @default(active)
-  parameter1_key        String?      @db.VarChar(50)
-  parameter1_value      String?      @db.VarChar(50)
-  parameter2_key        String?      @db.VarChar(50)
-  parameter2_value      String?      @db.VarChar(50)
-  parameter3_key        String?      @db.VarChar(50)
-  parameter3_value      String?      @db.VarChar(50)
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-  created_by Int?
-  updated_by Int?
-
-  master_category      MasterCategory @relation(fields: [master_category_id], references: [id], onDelete: Cascade)
-  master_data_parent   MasterData?    @relation(name: "master_data", fields: [master_data_parent_id], references: [id], onDelete: Cascade)
-  master_data_children MasterData[]   @relation(name: "master_data")
-
-  @@map("master_data")
-}
-
-model Parameter {
+model MasterStudent {
   id     Int          @id @default(autoincrement())
   name   String       @db.VarChar(100)
-  code   String       @unique @db.VarChar(50)
-  value  String       @db.Text
+  nim    String       @unique @db.VarChar(50)
   status CommonStatus @default(active)
 
-  /// Template
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-  created_by Int?
-  updated_by Int?
+  Transaction        Transaction[]
+  HistoryTransaction HistoryTransaction[]
 
-  @@map("parameter")
+  @@map("master_student")
 }
 
-model Role {
-  id     Int          @id @default(autoincrement())
-  code   String       @unique @db.VarChar(50)
-  name   String       @db.VarChar(100)
-  status CommonStatus @default(active)
+model Transaction {
+  id          Int               @id @default(autoincrement())
+  student_id  Int               @db.Integer
+  date_loan   DateTime
+  date_return DateTime
+  status      TransactionStatus @default(loaned)
 
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-  created_by Int?
-  updated_by Int?
+  student MasterStudent @relation(fields: [student_id], references: [id])
 
-  user         Users[]
-  access_modul AppAccessModul[]
-  access_menu  AppAccessMenu[]
+  TransactionDetail  TransactionDetail[]
+  HistoryTransaction HistoryTransaction[]
 
-  @@map("role")
+  @@map("transaction")
 }
 
-model Users {
-  id       Int        @id @default(autoincrement())
-  role_id  Int
-  name     String     @db.VarChar(100)
-  email    String?    @unique @db.VarChar(100)
-  username String     @unique @db.VarChar(50)
-  password String     @db.Text
-  status   UserStatus @default(inactive)
-  phone    String?    @db.VarChar(15)
-  image    String?    @db.Text
+model TransactionDetail {
+  id             Int               @id @default(autoincrement())
+  transaction_id Int               @db.Integer
+  book_id        Int               @db.Integer
+  qty            Int               @db.Integer
+  status         TransactionStatus @default(loaned)
 
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-  created_by Int?
-  updated_by Int?
+  transaction Transaction @relation(fields: [transaction_id], references: [id])
+  book        MasterBook  @relation(fields: [book_id], references: [id])
 
-  role Role @relation(fields: [role_id], references: [id], onDelete: Cascade)
-
-  @@map("users")
+  @@map("transaction_detail")
 }
 
-model TemplateDokumen {
-  id       Int          @id @default(autoincrement())
-  code     String       @unique @db.VarChar(50)
-  name     String       @db.VarChar(100)
-  template String       @db.Text()
-  status   CommonStatus @default(active)
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-  created_by Int?
-  updated_by Int?
-
-  @@map("template_dokumen")
-}
-
-// End System Modul Schema
+// End Main Modul Schema
