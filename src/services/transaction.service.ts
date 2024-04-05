@@ -129,23 +129,48 @@ class TransactionService {
     }
 
     // Update transaction status
-    const result = await prisma.transaction.update({
-      where: {
-        id: transactionId,
-      },
-      data: {
-        status: 'returned',
-        TransactionDetail: {
-          updateMany: {
-            where: {
-              transaction_id: transactionId,
-            },
-            data: {
-              status: 'returned',
+    const result = await prisma.$transaction(async (trx) => {
+      const updateTrx = await prisma.transaction.update({
+        include: {
+          TransactionDetail: true,
+        },
+        where: {
+          id: transactionId,
+        },
+        data: {
+          status: 'returned',
+          TransactionDetail: {
+            updateMany: {
+              where: {
+                transaction_id: transactionId,
+              },
+              data: {
+                status: 'returned',
+              },
             },
           },
         },
-      },
+      });
+
+      const detailTransaction = updateTrx.TransactionDetail;
+      const bookIds = detailTransaction.map((detail) => detail.book_id);
+
+      // After update transaction status, create history transaction
+      for (const bookId of bookIds) {
+        const totalBook = detailTransaction.filter((detail) => detail.book_id === bookId).length;
+        const durationInDays = dayjs(updateTrx.date_return).diff(dayjs(updateTrx.date_loan), 'day');
+        await trx.historyTransaction.create({
+          data: {
+            duration_loan_days: durationInDays,
+            book_id: bookId,
+            student_id: updateTrx.student_id,
+            qty: totalBook,
+            transaction_id: updateTrx.id,
+          },
+        });
+      }
+
+      return updateTrx;
     });
 
     return result;

@@ -1,4 +1,5 @@
 import { BaseQueryParamsDTO } from '@dto/base-query-params.dto';
+import { TransactionStatus } from '@prisma/client';
 import { prisma } from '@utils/prisma';
 
 interface FindAllQueryParams extends BaseQueryParamsDTO {
@@ -9,6 +10,15 @@ interface FindAllQueryParams extends BaseQueryParamsDTO {
   date_loan?: Date;
   date_return?: Date;
   long_loan_in_days?: number;
+}
+
+interface HistoryTransactionCreateDTO {
+  transaction_id: number;
+  book_id: number;
+  student_id: number;
+  qty: number;
+  status: string;
+  duration_loan_days: number;
 }
 
 class HistoryTransactionService {
@@ -83,6 +93,21 @@ class HistoryTransactionService {
       data: result,
       total,
     };
+  }
+
+  async create(data: HistoryTransactionCreateDTO) {
+    const result = await prisma.historyTransaction.create({
+      data: {
+        transaction_id: data.transaction_id,
+        book_id: data.book_id,
+        student_id: data.student_id,
+        qty: data.qty,
+        status: data.status as TransactionStatus,
+        duration_loan_days: data.duration_loan_days,
+      },
+    });
+
+    return result;
   }
 }
 

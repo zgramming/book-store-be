@@ -24,7 +24,6 @@ enum TransactionStatus {
 }
 
 // Main Modul Schema
-
 model Inventory {
   id         Int      @id @default(autoincrement())
   book_id    Int      @db.Integer
