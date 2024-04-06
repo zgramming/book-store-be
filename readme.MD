@@ -73,14 +73,14 @@ List of available routes:
 `GET api/v1/master-books/:id` - Get Book by id\
 `POST api/v1/master-books` - Create Book\
 `PUT api/v1/master-books/:id` - Update Book\
-`DEL api/v1/master-books/:id` - Delete Book\
+`DEL api/v1/master-books/:id` - Delete Book
 
 **Master Student routes**:\
 `GET api/v1/master-students` - Get All Students\
 `GET api/v1/master-students/:id` - Get Student by id\
 `POST api/v1/master-students` - Create Student\
 `PUT api/v1/master-students/:id` - Update Student\
-`DEL api/v1/master-students/:id` - Delete Student\
+`DEL api/v1/master-students/:id` - Delete Student
 
 **Inventory routes**:\
 `GET api/v1/inventories` - Get All Inventories\
@@ -89,13 +89,13 @@ List of available routes:
 `PUT api/v1/inventories/:id` - Update Inventory\
 `PUT api/v1/inventories/:id/increase-stock` - Increase stock inventory\
 `PUT api/v1/inventories/:id/decrease-stock` - Decrease stock inventory\
-`DEL api/v1/inventories/:id` - Delete Inventory\
+`DEL api/v1/inventories/:id` - Delete Inventory
 
 **Transactions routes**:\
 `GET api/v1/transactions` - Get All Transactions\
 `GET api/v1/transactions/:id` - Get Transaction by id\
 `POST api/v1/transactions` - Create Transaction\
-`PUT api/v1/transactions/:id/return` - Return book\
+`PUT api/v1/transactions/:id/return` - Return book
 
 **History routes**:\
-`GET api/v1/history-transactions` - Get All History Transactions\
+`GET api/v1/history-transactions` - Get All History Transactions
