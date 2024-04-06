@@ -36,27 +36,39 @@ class HistoryTransactionService {
     const result = await prisma.historyTransaction.findMany({
       where: {
         duration_loan_days: long_loan_in_days,
-        student: {
-          nim: {
-            contains: nim,
-            mode: 'insensitive',
-          },
-          name: {
-            contains: name_student,
-            mode: 'insensitive',
-          },
-        },
-        book: {
-          id: book_id,
-          title: {
-            contains: book_title,
-            mode: 'insensitive',
-          },
-        },
         transaction: {
           date_loan: date_loan,
           date_return: date_return,
         },
+        OR: [
+          {
+            student: {
+              name: {
+                contains: name_student,
+                mode: 'insensitive',
+              },
+            },
+          },
+          {
+            student: {
+              nim: {
+                contains: nim,
+                mode: 'insensitive',
+              },
+            },
+          },
+          {
+            book: {
+              title: {
+                contains: book_title,
+                mode: 'insensitive',
+              },
+            },
+          },
+          {
+            book_id: book_id,
+          },
+        ],
       },
       take: limit,
       skip: (page - 1) * limit,
@@ -70,27 +82,39 @@ class HistoryTransactionService {
     const total = await prisma.historyTransaction.count({
       where: {
         duration_loan_days: long_loan_in_days,
-        student: {
-          nim: {
-            contains: nim,
-            mode: 'insensitive',
-          },
-          name: {
-            contains: name_student,
-            mode: 'insensitive',
-          },
-        },
-        book: {
-          id: book_id,
-          title: {
-            contains: book_title,
-            mode: 'insensitive',
-          },
-        },
         transaction: {
           date_loan: date_loan,
           date_return: date_return,
         },
+        OR: [
+          {
+            student: {
+              name: {
+                contains: name_student,
+                mode: 'insensitive',
+              },
+            },
+          },
+          {
+            student: {
+              nim: {
+                contains: nim,
+                mode: 'insensitive',
+              },
+            },
+          },
+          {
+            book: {
+              title: {
+                contains: book_title,
+                mode: 'insensitive',
+              },
+            },
+          },
+          {
+            book_id: book_id,
+          },
+        ],
       },
     });
 

@@ -72,10 +72,12 @@ model MasterBook {
 }
 
 model MasterStudent {
-  id     Int          @id @default(autoincrement())
-  name   String       @db.VarChar(100)
-  nim    String       @unique @db.VarChar(50)
-  status CommonStatus @default(active)
+  id         Int          @id @default(autoincrement())
+  name       String       @db.VarChar(100)
+  nim        String       @unique @db.VarChar(50)
+  status     CommonStatus @default(active)
+  created_at DateTime     @default(now())
+  updated_at DateTime     @updatedAt
 
   Transaction        Transaction[]
   HistoryTransaction HistoryTransaction[]
@@ -89,6 +91,8 @@ model Transaction {
   date_loan   DateTime
   date_return DateTime
   status      TransactionStatus @default(loaned)
+  created_at  DateTime          @default(now())
+  updated_at  DateTime          @updatedAt
 
   student MasterStudent @relation(fields: [student_id], references: [id])
 

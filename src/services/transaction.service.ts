@@ -1,9 +1,15 @@
-import { TransactionStatus } from '@prisma/client';
+import { BaseQueryParamsDTO } from '@dto/base-query-params.dto';
 import InvariantError from '@utils/exceptions/invariant-error';
 import NotFoundError from '@utils/exceptions/notfound-error';
 import { prisma } from '@utils/prisma';
 
 import dayjs from 'dayjs';
+
+interface FindAllQueryParams extends BaseQueryParamsDTO {
+  student_name?: string;
+  date_loan?: Date;
+  date_return?: Date;
+}
 
 interface TransactionBookDetailDTO {
   book_id: number;
@@ -14,11 +20,63 @@ interface TransactionCreateDTO {
   student_id: number;
   date_loan: Date;
   date_return: Date;
-  status: string;
-  book: TransactionBookDetailDTO[];
+  items: TransactionBookDetailDTO[];
 }
 
 class TransactionService {
+  async findAll({ limit, page, date_loan, date_return, student_name }: FindAllQueryParams) {
+    const result = await prisma.transaction.findMany({
+      take: limit,
+      skip: (page - 1) * limit,
+      include: {
+        TransactionDetail: true,
+        student: true,
+      },
+      where: {
+        student: {
+          name: {
+            contains: student_name,
+            mode: 'insensitive',
+          },
+        },
+        date_loan: {
+          gte: date_loan,
+        },
+        date_return: {
+          lte: date_return,
+        },
+      },
+    });
+
+    const total = await prisma.transaction.count();
+
+    return {
+      data: result,
+      total,
+    };
+  }
+
+  async findDetail(transactionId: number) {
+    const transactionDetail = await prisma.transaction.findUnique({
+      where: {
+        id: transactionId,
+      },
+      include: {
+        TransactionDetail: {
+          include: {
+            book: true,
+          },
+        },
+      },
+    });
+
+    if (!transactionDetail) {
+      throw new NotFoundError('Transaction not found');
+    }
+
+    return transactionDetail;
+  }
+
   async create(data: TransactionCreateDTO) {
     const transaction = await prisma.$transaction(async (trx) => {
       const checkStudent = await trx.masterStudent.findFirst({
@@ -45,7 +103,7 @@ class TransactionService {
       }
 
       // Validate if stock is enough
-      const bookIds = data.book.map((book) => book.book_id);
+      const bookIds = data.items.map((book) => book.book_id);
       const booksInventory = await trx.inventory.findMany({
         where: {
           book_id: {
@@ -57,7 +115,7 @@ class TransactionService {
         },
       });
 
-      for (const book of data.book) {
+      for (const book of data.items) {
         const loanedBookAgg = await trx.transactionDetail.aggregate({
           _sum: {
             qty: true,
@@ -78,12 +136,6 @@ class TransactionService {
         const currentStock = bookInventory.stock - loanedBook;
         const isStockNotEnough = currentStock < +book.quantity;
 
-        console.log({
-          loanedBook,
-          currentStock,
-          isStockNotEnough,
-        });
-
         if (isStockNotEnough) {
           throw new InvariantError(
             `Stock of ${bookInventory.book.title} at location ${bookInventory.location} is not enough, current stock: ${currentStock}`,
@@ -96,10 +148,10 @@ class TransactionService {
           student_id: data.student_id,
           date_loan: data.date_loan,
           date_return: data.date_return,
-          status: data.status as TransactionStatus,
+          status: 'loaned',
           TransactionDetail: {
             createMany: {
-              data: data.book.map((book) => ({
+              data: data.items.map((book) => ({
                 book_id: book.book_id,
                 qty: +book.quantity,
               })),

@@ -16,6 +16,7 @@ class MasterStudentController {
     res.json({
       message: 'success',
       error: false,
+      total,
       data: result,
     });
   };

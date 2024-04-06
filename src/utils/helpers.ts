@@ -64,3 +64,7 @@ export const generateTokenJWT = (payload: any) => {
 
   return token;
 };
+
+export const isNumber = (value: any) => {
+  return !isNaN(value);
+};

@@ -34,6 +34,15 @@ class InventoryService {
           mode: 'insensitive',
         },
       },
+      include: {
+        book: {
+          select: {
+            id: true,
+            title: true,
+            author: true,
+          },
+        },
+      },
       take: limit,
       skip: (page - 1) * limit,
     });
@@ -53,8 +62,29 @@ class InventoryService {
       },
     });
 
+    let mapppedResult = [];
+
+    for (const inventory of result) {
+      const loanedStock = await prisma.transactionDetail.aggregate({
+        _sum: {
+          qty: true,
+        },
+        where: {
+          book_id: inventory.book_id,
+          status: 'loaned',
+        },
+      });
+
+      const currentStock = inventory.stock - (loanedStock._sum.qty || 0);
+
+      mapppedResult.push({
+        ...inventory,
+        current_stock: currentStock,
+      });
+    }
+
     return {
-      data: result,
+      data: mapppedResult,
       total,
     };
   }

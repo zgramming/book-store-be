@@ -1,4 +1,5 @@
 import HistoryTransactionService from '@services/history-transaction.service';
+import { isNumber } from '@utils/helpers';
 import { Request, Response } from 'express';
 
 class HistoryTransactionController {
@@ -13,7 +14,7 @@ class HistoryTransactionController {
       page: Number(page || 1),
       nim: nim as string | undefined,
       name_student: name_student as string | undefined,
-      book_id: book_id ? Number(book_id) : undefined,
+      book_id: book_id && isNumber(book_id) ? Number(book_id) : undefined,
       book_title: book_title as string | undefined,
       date_loan: date_loan ? new Date(date_loan as string) : undefined,
       date_return: date_return ? new Date(date_return as string) : undefined,
