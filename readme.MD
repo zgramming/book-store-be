@@ -39,8 +39,6 @@ npm run prisma:build
 Running in development:
 
 ```bash
-npm start
-# or
 npm run dev
 ```
 
@@ -50,7 +48,7 @@ Running in production:
 # build
 npm run build
 # start
-npm run prod
+npm run start
 ```
 
 ## Environment Variables
