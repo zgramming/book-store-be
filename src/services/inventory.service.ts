@@ -138,6 +138,19 @@ class InventoryService {
       throw new NotFoundError('Book not found in master book');
     }
 
+    const isBookExistInInventory = await prisma.inventory.findFirst({
+      where: {
+        book_id: data.book_id,
+        id: {
+          not: id,
+        },
+      },
+    });
+
+    if (isBookExistInInventory) {
+      throw new InvariantError('Book you want to update already exists in inventory, please update the stock instead');
+    }
+
     return await prisma.inventory.update({
       where: {
         id,
